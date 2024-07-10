@@ -42,6 +42,13 @@ function Gameboard() {
         });
 
         // check if cols win
+        for (let col = 0; col < board.length; col++) {
+            const token = board[0][col].getToken();
+            if (token == board[1][col].getToken() && token == board[2][col].getToken() && token !== '') {
+                message =  ` wins!`;
+            }
+            
+        }
         token = board[0][0].getToken();
         if (token == board[1][0].getToken() && token == board[2][0].getToken() && token !== '') {
             message =  ` wins!`;
@@ -69,8 +76,9 @@ function Gameboard() {
 
         if(message == 'Tie!') {
             console.log(message);
-        } else {
-            console.log(game.getActivePlayer().name + message);
+        } else if (message) {
+            // console.log(game.getActivePlayer().name + message);
+            console.log("the message is " + message);
         }
 
         return message;
@@ -103,7 +111,7 @@ function Cell() {
     }
 }
 
-function gameController(playerOneName = "Player One", playerTwoName = "Player Two") {
+function GameController(playerOneName = "Player One", playerTwoName = "Player Two") {
     const board = Gameboard();
 
     const players = [
@@ -131,6 +139,8 @@ function gameController(playerOneName = "Player One", playerTwoName = "Player Tw
     }
 
     const playRound = (row, col) => {
+        if (board.getBoard()[row][col].getToken() !== '') return;
+
         console.log(
             `Placing ${getActivePlayer().name}'s token in row ${row}, column ${col}...`
         );
@@ -140,7 +150,8 @@ function gameController(playerOneName = "Player One", playerTwoName = "Player Tw
         let message = board.checkWin();
         if (message) {
             board.printBoard();
-            return;
+            console.log("playround message" + message)
+            return message;
         }
 
         switchPlayerTurn();
@@ -152,8 +163,88 @@ function gameController(playerOneName = "Player One", playerTwoName = "Player Tw
     return {
         playRound,
         getActivePlayer,
-        switchPlayerTurn
+        getBoard: board.getBoard
     };
 }
 
-const game = gameController();
+
+function ScreenController() {
+    const game = GameController();
+    const playerTurnDiv = document.querySelector(".turn");
+    const boardDiv = document.querySelector(".board");
+
+    const updateScreen = () => {
+        boardDiv.textContent = '';
+
+        const board = game.getBoard();
+        const activePlayer = game.getActivePlayer();
+
+        playerTurnDiv.textContent = `${activePlayer.name}'s turn...`;
+
+        board.forEach((row, rowIndex) => {
+            row.forEach( (cell,colIndex) => {
+                const cellButton = document.createElement("button");
+                cellButton.classList.add("cell");
+
+                cellButton.dataset.column = colIndex;
+                cellButton.dataset.row = rowIndex;
+                cellButton.textContent = cell.getToken();
+
+                boardDiv.appendChild(cellButton);
+            })
+        })
+    }
+
+    function clickHandlerBoard(e) {
+        const selectedColumn = e.target.dataset.column;
+        const selectedRow = e.target.dataset.row;
+
+        if (!selectedColumn || !selectedRow) return;
+
+        let message = game.playRound(selectedRow, selectedColumn);
+
+        // check win
+        let playerWinDiv = document.querySelector(".turn");
+        if (message) {
+            if(message == 'Tie!') {
+                playerWinDiv.textContent = message;
+                boardDiv.removeEventListener("click", clickHandlerBoard);
+            } else {
+                playerWinDiv.textContent = `${game.getActivePlayer().name} Wins!`;
+                boardDiv.removeEventListener("click", clickHandlerBoard);
+            }
+
+            boardDiv.textContent = '';
+            const board = game.getBoard();
+            board.forEach((row, rowIndex) => {
+                row.forEach( (cell,colIndex) => {
+                    const cellButton = document.createElement("button");
+                    cellButton.classList.add("cell");
+    
+                    cellButton.dataset.column = colIndex;
+                    cellButton.dataset.row = rowIndex;
+                    cellButton.textContent = cell.getToken();
+    
+                    boardDiv.appendChild(cellButton);
+                })
+            })
+
+
+        } else {
+
+            updateScreen();
+        }
+
+    }
+    boardDiv.addEventListener("click", clickHandlerBoard);
+
+    updateScreen();
+
+
+}
+
+
+
+ScreenController();
+
+
