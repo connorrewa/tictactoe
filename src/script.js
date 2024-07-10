@@ -172,6 +172,7 @@ function ScreenController() {
     const game = GameController();
     const playerTurnDiv = document.querySelector(".turn");
     const boardDiv = document.querySelector(".board");
+    const restartButton = document.querySelector("#restart");
 
     const updateScreen = () => {
         boardDiv.textContent = '';
@@ -237,6 +238,10 @@ function ScreenController() {
 
     }
     boardDiv.addEventListener("click", clickHandlerBoard);
+
+    restartButton.addEventListener("click", (e) => {
+        ScreenController();
+    })
 
     updateScreen();
 
